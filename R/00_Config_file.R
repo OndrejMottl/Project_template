@@ -7,7 +7,7 @@
 #
 #
 #                       O. Mottl
-#                         2023
+#                         2025
 #
 #----------------------------------------------------------#
 # Configuration script with the variables that should be consistent throughout
@@ -25,6 +25,8 @@ set.seed(1234)
 # 1. Load packages -----
 #----------------------------------------------------------#
 
+library(here)
+
 if (
   isFALSE(
     exists("already_synch", envir = current_env)
@@ -39,19 +41,18 @@ if (
   library(here)
   # Synchronise the package versions
   renv::restore(
-    lockfile = here::here("renv/library_list.lock")
+    lockfile = here::here("renv.lock")
   )
   already_synch <- TRUE
 
   # Save snapshot of package versions
-  # renv::snapshot(lockfile =  "renv/library_list.lock")  # do only for update
+  # renv::snapshot(lockfile =  here::here("renv.lock"))  # do only for update
 }
 
 # Define packages
 package_list <-
   c(
-   "assertthat",
-    "devtools",
+    "assertthat",
     "here",
     "httpgd",
     "janitor",
@@ -95,10 +96,14 @@ fun_list <-
   )
 
 # source them
-sapply(
-  paste0("R/functions/", fun_list, sep = ""),
-  source
-)
+if (
+  length(fun_list) > 0
+) {
+  sapply(
+    paste0("R/Functions/", fun_list, sep = ""),
+    source
+  )
+}
 
 
 #----------------------------------------------------------#
