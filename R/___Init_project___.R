@@ -7,7 +7,7 @@
 #
 #
 #                       O. Mottl
-#                         2023
+#                         2025
 #
 #----------------------------------------------------------#
 
@@ -49,7 +49,7 @@ if (
   library(here)
 } else {
   # install package
-  utils::install.packages("here")
+  renv::install("here")
 
   # load the package
   library(here)
@@ -61,12 +61,12 @@ if (
 
 # If there is no lock file present make a new snapshot
 if (
-  isTRUE("library_list.lock" %in% list.files(here::here("renv")))
+  isTRUE("renv.lock" %in% list.files(here::here()))
 ) {
   cat("The project already has a lockfile. Restoring packages", "\n")
 
   renv::restore(
-    lockfile = here::here("renv/library_list.lock")
+    lockfile = here::here("renv.lock")
   )
 
   cat("Set up completed. You can continute to run the project", "\n")
@@ -86,7 +86,6 @@ if (
 sapply(
   c(
     "assertthat",
-    "devtools",
     "here",
     "httpgd",
     "janitor",
@@ -102,7 +101,7 @@ sapply(
     "usethis",
     "utils"
   ),
-  utils::install.packages,
+  function(x) renv::install(x, prompt = FALSE),
   character.only = TRUE
 )
 
@@ -119,7 +118,7 @@ remotes::install_github(
 #----------------------------------------------------------#
 
 renv::snapshot(
-  lockfile = here::here("renv/library_list.lock")
+  lockfile = here::here("renv.lock")
 )
 
 cat("Set up completed. You can continute to run the project", "\n")
