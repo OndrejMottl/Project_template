@@ -1,0 +1,6 @@
+linters: lintr::linters_with_defaults(
+    line_length_linter = lintr::line_length_linter(80L),
+    object_length_linter = NULL,
+    return_linter = NULL
+  )
+encoding: "UTF-8"
