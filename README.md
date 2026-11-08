@@ -49,10 +49,9 @@ The layout and its rules are described in [.ai/analysis-structure.md](.ai/analys
 
 ## Editor set-up
 
-The template works in any R editor; I use VS Code with radian, and RStudio works too. My complete VS Code environment for R on Windows (install steps, settings, keybindings, extensions, and the files to rebuild it) is described in [VS Code for R](https://ondrejmottl.github.io/collaboration/vscode_r_setup/).
+The template works in any R editor; I use VS Code with radian, and RStudio works too. My VS Code set-up for R is described in [VS Code for R](https://ondrejmottl.github.io/collaboration/vscode_r_setup/).
 
-- The [R Version Switcher](https://github.com/OndrejMottl/r-version-switcher) extension can switch the workspace to the R version recorded in `renv.lock`.
-- The `.lintr` file is used by the vscode-R linter, which needs lintr 3.3.0-1 or newer in the active R version.
+The [R Version Switcher](https://github.com/OndrejMottl/r-version-switcher) extension can switch the workspace to the R version recorded in `renv.lock`.
 
 ## Getting the code of an existing project
 
