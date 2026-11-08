@@ -3,122 +3,140 @@
 #
 #                     Project name
 #
-#                     Project setup
+#                     Project init
 #
 #
 #                       O. Mottl
-#                         2025
+#                         2026
 #
 #----------------------------------------------------------#
+# Prepare the reproducible R environment. Run once per checkout from the
+#   project root in a fresh session:
+#     Rscript R/___Init_project___.R
+# - With `renv.lock` present, the exact locked versions are restored.
+# - Without it (a new project created from the template), the packages
+#     listed in `config.yml` and all packages used in the code are
+#     installed and the first lockfile is written.
+# Later snapshots are a separate, deliberate maintenance step.
+# This script uses base R only (plus renv), because it must run before any
+#   project package is installed.
 
-# Script to prepare all components of the environment to run the Project.
-#   Needs to be run only once
 
 #----------------------------------------------------------#
-# Step 0: Install {renv} for package management -----
+# 0. Bootstrap renv -----
 #----------------------------------------------------------#
 
 if (
-  "renv" %in% utils::installed.packages()
+  isFALSE(requireNamespace("renv", quietly = TRUE))
 ) {
-  library(renv)
-} else {
-  # install package
-  utils::install.packages("renv")
+  message("Package {renv} is not installed; installing it from CRAN.")
 
-  # load the package
-  library(renv)
+  utils::install.packages(pkgs = "renv")
 }
 
-#----------------------------------------------------------#
-# Step 1: Activate 'renv' project -----
-#----------------------------------------------------------#
-
-# NOTE: The R may ask the User to restart the session (R).
-#   After that, continue with the next step
-
-renv::activate()
-
-#----------------------------------------------------------#
-# Step 1: Install {here} for file navigation -----
-#----------------------------------------------------------#
-
 if (
-  "here" %in% utils::installed.packages()
+  isFALSE(requireNamespace("renv", quietly = TRUE))
 ) {
-  library(here)
-} else {
-  # install package
-  renv::install("here")
-
-  # load the package
-  library(here)
+  stop(
+    "Package {renv} could not be installed; setup cannot continue.",
+    call. = FALSE
+  )
 }
 
+
 #----------------------------------------------------------#
-# Step 2: Synchronize package versions with the project -----
+# 1. Locate the project -----
 #----------------------------------------------------------#
 
-# If there is no lock file present make a new snapshot
-if (
-  isTRUE("renv.lock" %in% list.files(here::here()))
-) {
-  cat("The project already has a lockfile. Restoring packages", "\n")
-
-  renv::restore(
-    lockfile = here::here("renv.lock")
+path_project <-
+  normalizePath(
+    path = ".",
+    winslash = "/",
+    mustWork = TRUE
   )
 
-  cat("Set up completed. You can continute to run the project", "\n")
+path_config <-
+  file.path(path_project, "config.yml")
 
-  cat("Do NOT run the rest of this script", "\n")
-} else {
-  cat("The project seems to be new (no lockfile)", "\n")
+path_lockfile <-
+  file.path(path_project, "renv.lock")
 
-  cat("Continue with this script", "\n")
+if (
+  isFALSE(file.exists(path_config))
+) {
+  stop(
+    "No config.yml in ",
+    path_project,
+    ". Run this script from the project root.",
+    call. = FALSE
+  )
 }
 
-#----------------------------------------------------------#
-# Step 3: Install packages to the project -----
-#----------------------------------------------------------#
-
-# install all packages in the lst from CRAN
-sapply(
-  c(
-    "assertthat",
-    "here",
-    "httpgd",
-    "janitor",
-    "jsonlite",
-    "knitr",
-    "languageserver",
-    "lifecycle",
-    "renv",
-    "remotes",
-    "rlang",
-    "roxygen2",
-    "tidyverse",
-    "usethis",
-    "utils"
-  ),
-  function(x) renv::install(x, prompt = FALSE),
-  character.only = TRUE
-)
-
-# install RUtilpol from GitHub
-remotes::install_github(
-  repo = "HOPE-UIB-BIO/R-Utilpol-package",
-  ref = "HEAD",
-  quiet = FALSE,
-  upgrade = "ask"
-)
 
 #----------------------------------------------------------#
-# Step 4: Save versions of packages -----
+# 2. Restore an existing project -----
 #----------------------------------------------------------#
 
-renv::snapshot(
-  lockfile = here::here("renv.lock")
-)
+if (
+  isTRUE(file.exists(path_lockfile))
+) {
+  message("Lockfile found; restoring the locked package versions.")
 
-cat("Set up completed. You can continute to run the project", "\n")
+  renv::restore(
+    project = path_project,
+    lockfile = path_lockfile,
+    prompt = FALSE
+  )
+
+  message("Setup complete. Start scripts with R/___setup_project___.R.")
+}
+
+
+#----------------------------------------------------------#
+# 3. Initialise a new project -----
+#----------------------------------------------------------#
+
+if (
+  isFALSE(file.exists(path_lockfile))
+) {
+  message("No lockfile found; installing packages for a new project.")
+
+  renv::install(
+    packages = "yaml",
+    project = path_project,
+    prompt = FALSE
+  )
+
+  # Packages are defined once, in the `default` profile; other profiles
+  #   should not override them
+  list_packages <-
+    yaml::read_yaml(file = path_config)[["default"]][["packages"]]
+
+  vec_packages_config <-
+    unlist(list_packages, use.names = FALSE)
+
+  renv::install(
+    packages = vec_packages_config,
+    project = path_project,
+    prompt = FALSE
+  )
+
+  # Install every other package called in the project code (pkg::fun)
+  renv::install(
+    project = path_project,
+    prompt = FALSE
+  )
+
+  # Sourcing the setup checks that it runs and writes the package manifest
+  #   that the snapshot needs
+  source(
+    file.path(path_project, "R", "___setup_project___.R")
+  )
+
+  renv::snapshot(
+    project = path_project,
+    prompt = FALSE
+  )
+
+  message("Setup complete; renv.lock written. Commit it with the project.")
+}
