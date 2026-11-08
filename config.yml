@@ -1,0 +1,40 @@
+# Project configuration read through `load_config_value()`.
+# Select a profile with the `R_CONFIG_ACTIVE` environment variable; the
+#   `default` profile is used otherwise. Other profiles inherit from
+#   `default` and only list the values they change.
+# Machine-local paths do not belong here; put them in the git-ignored
+#   `secrets.yaml` (see `secrets_example.yaml`).
+
+default:
+  seed: 900723
+  # Data root used when `secrets.yaml` is absent; relative to the project
+  data_storage_path: "Data"
+  # Packages for `R/___Init_project___.R` to install and renv to record.
+  #   Packages called only as `pkg::fun()` are detected automatically.
+  packages:
+    # Attached by `R/___setup_project___.R`. Do not attach packages that
+    #   mask base functions (e.g. renv, config).
+    attach:
+      - assertthat
+      - cli
+      - ggview
+      - here
+      - targets
+      - tidyverse
+    # Installed and recorded, but not attached (IDE and workflow tools)
+    tools:
+      - httpgd
+      - languageserver
+      - roxygen2
+      - visNetwork
+  graphical:
+    width: 16
+    height: 12
+    units: "cm"
+    dpi: 300
+    bg: "white"
+    text_size: 10
+    line_size: 0.1
+  # Example analysis settings; replace with project values
+  example:
+    min_n_records: 3

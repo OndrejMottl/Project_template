@@ -3,139 +3,114 @@
 #
 #                     Project name
 #
-#                     Config file
+#                     Project setup
 #
 #
 #                       O. Mottl
-#                         2025
+#                         2026
 #
 #----------------------------------------------------------#
-# Configuration script with the variables that should be consistent throughout
-#   the whole repo. It loads packages, defines important variables,
-#   authorises the user, and saves config file.
-
-# Set the current environment
-current_env <- environment()
-
-# set seed
-set.seed(1234)
+# Shared setup sourced at the top of every script, pipeline, and test run:
+#   loads project functions, attaches packages, writes the renv dependency
+#   manifest, applies seed and graphical options from `config.yml`, and
+#   resolves the data root. Run `R/___Init_project___.R` once beforehand.
 
 
 #----------------------------------------------------------#
-# 1. Load packages -----
+# 1. Load project functions -----
 #----------------------------------------------------------#
 
 library(here)
 
-if (
-  isFALSE(
-    exists("already_synch", envir = current_env)
-  )
-) {
-  already_synch <- FALSE
-}
-
-if (
-  isFALSE(already_synch)
-) {
-  library(here)
-  # Synchronise the package versions
-  renv::restore(
-    lockfile = here::here("renv.lock")
-  )
-  already_synch <- TRUE
-
-  # Save snapshot of package versions
-  # renv::snapshot(lockfile =  here::here("renv.lock"))  # do only for update
-}
-
-# Define packages
-package_list <-
-  c(
-    "assertthat",
-    "here",
-    "httpgd",
-    "janitor",
-    "jsonlite",
-    "knitr",
-    "languageserver",
-    "lifecycle",
-    "renv",
-    "remotes",
-    "rlang",
-    "roxygen2",
-    "tidyverse",
-    "usethis",
-    "utils"
+vec_function_files <-
+  base::list.files(
+    path = here::here("R", "Functions"),
+    pattern = "[.]R$",
+    recursive = TRUE,
+    full.names = TRUE
   )
 
-# Attach all packages
-sapply(package_list, library, character.only = TRUE)
-
-
-#----------------------------------------------------------#
-# 2. Define space -----
-#----------------------------------------------------------#
-
-current_date <- Sys.Date()
-
-# project directory is set up by 'here' package, Adjust if needed
-current_dir <- here::here()
-
-
-#----------------------------------------------------------#
-# 3. Load functions -----
-#----------------------------------------------------------#
-
-# get vector of general functions
-fun_list <-
-  list.files(
-    path = "R/Functions/",
-    pattern = "*.R",
-    recursive = TRUE
+purrr::walk(
+  .x = vec_function_files,
+  .f = ~ base::source(
+    file = .x,
+    encoding = "UTF-8"
   )
-
-# source them
-if (
-  length(fun_list) > 0
-) {
-  sapply(
-    paste0("R/Functions/", fun_list, sep = ""),
-    source
-  )
-}
-
-
-#----------------------------------------------------------#
-# 4. Authorise the user -----
-#----------------------------------------------------------#
-
-# if applicable
-
-#----------------------------------------------------------#
-# 5. Define variables -----
-#----------------------------------------------------------#
-
-
-#----------------------------------------------------------#
-# 6. Graphical options -----
-#----------------------------------------------------------#
-
-## examples
-# set ggplot output
-ggplot2::theme_set(
-  ggplot2::theme_classic()
 )
 
-# define general
-text_size <- 10
-line_size <- 0.1
 
-# define output sizes
-image_width <- 16
-image_height <- 12
-image_units <- "cm"
+#----------------------------------------------------------#
+# 2. Attach packages -----
+#----------------------------------------------------------#
 
-# define pallets
+vec_packages_attach <-
+  load_config_value(value = c("packages", "attach")) |>
+  base::unlist()
 
-# define common color
+vec_packages_tools <-
+  load_config_value(value = c("packages", "tools")) |>
+  base::unlist()
+
+# All project code calls `pkg::fun()`, so attach messages and conflicts are
+#   irrelevant and silenced
+purrr::walk(
+  .x = vec_packages_attach,
+  .f = ~ base::suppressPackageStartupMessages(
+    base::library(
+      package = .x,
+      character.only = TRUE,
+      quietly = TRUE,
+      warn.conflicts = FALSE
+    )
+  )
+)
+
+# Keep the static renv manifest in step with the configured packages
+save_package_dependencies_manifest(
+  vec_package_names = c(vec_packages_attach, vec_packages_tools),
+  path_output_file = here::here("R", "package_dependencies.R")
+)
+
+
+#----------------------------------------------------------#
+# 3. Define options -----
+#----------------------------------------------------------#
+
+config_seed <-
+  load_config_value(value = "seed")
+
+base::set.seed(config_seed)
+
+graphical_options <-
+  load_config_value(value = "graphical")
+
+ggplot2::theme_set(
+  ggplot2::theme_classic(
+    base_size = purrr::chuck(graphical_options, "text_size")
+  )
+)
+
+
+#----------------------------------------------------------#
+# 4. Resolve data storage -----
+#----------------------------------------------------------#
+
+# Large inputs and target stores live under this root. Set a machine-local
+#   root in the git-ignored `secrets.yaml` (see `secrets_example.yaml`).
+path_data_storage <-
+  resolve_data_storage_path(
+    path_default = load_config_value(value = "data_storage_path")
+  )
+
+# Abort rather than warn: a mistyped root would otherwise make {targets}
+#   build new stores in the wrong place
+if (
+  isFALSE(base::dir.exists(path_data_storage))
+) {
+  cli::cli_abort(
+    c(
+      "The data root does not exist: {.path {path_data_storage}}",
+      "i" = "Create it or correct {.file secrets.yaml}."
+    )
+  )
+}
