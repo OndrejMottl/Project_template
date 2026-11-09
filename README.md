@@ -47,6 +47,12 @@ The layout and its rules are described in [.ai/analysis-structure.md](.ai/analys
 4. Run `Rscript R/Tests/Run_tests.R` and `Rscript R/Analyses/00_run_main.R` to check that everything works.
 5. Replace the example functions in `R/Functions/Example/`, their tests, and the example targets with the project's own.
 
+## Editor set-up
+
+The template works in any R editor; I use VS Code with radian, and RStudio works too. My VS Code set-up for R is described in [VS Code for R](https://ondrejmottl.github.io/collaboration/vscode_r_setup/).
+
+The [R Version Switcher](https://github.com/OndrejMottl/r-version-switcher) extension can switch the workspace to the R version recorded in `renv.lock`.
+
 ## Getting the code of an existing project
 
 Clone the repository, or download the latest release as a zip file. Then run `Rscript R/___Init_project___.R` from the project root, which restores the exact package versions in `renv.lock`.
