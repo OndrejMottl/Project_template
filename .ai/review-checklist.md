@@ -10,7 +10,7 @@ Use this when reviewing changed files, together with the general conventions in 
 ## Structure contracts (`analysis-structure.md`)
 
 - New functions: one per file, matching name, roxygen2 block, matching test file, approved verb.
-- Pipelines: quoted target names, a `# Why:` comment per target, own store, imports only public upstream targets.
+- Pipelines: quoted target names, a plain comment above each target saying what it provides and why (no `Why:` label), own store, imports only public upstream targets.
 - Configuration read only through `load_config_value()`; no hardcoded paths, seeds, or thresholds.
 - Renamed targets, stores, or config keys: all downstream users updated.
 

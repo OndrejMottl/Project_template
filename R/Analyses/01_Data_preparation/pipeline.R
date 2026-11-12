@@ -36,13 +36,13 @@ targets::tar_option_set(
 #----------------------------------------------------------#
 
 list(
-  # Why: Example raw input. Replace with the project's raw data, e.g. a
+  # Example raw input. Replace with the project's raw data, e.g. a
   #   `format = "file"` target on a file in `Data/Input/`.
   targets::tar_target(
     name = "data_raw",
     command = tibble::as_tibble(datasets::iris)
   ),
-  # Why: Public target with clean column names, imported by later stages.
+  # Public target with clean column names, imported by later stages.
   targets::tar_target(
     name = "data_prepared",
     command = prepare_example_data(data_raw = data_raw)

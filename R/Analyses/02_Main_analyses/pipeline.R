@@ -55,7 +55,7 @@ runner_data_preparation <- "R/Analyses/01_Data_preparation/00_run.R"
 #----------------------------------------------------------#
 
 list(
-  # Why: Fingerprint the upstream public targets so that a change upstream
+  # Fingerprint the upstream public targets so that a change upstream
   #   invalidates the import below; the check itself is cheap metadata.
   targets::tar_target(
     name = "fingerprint_data_preparation",
@@ -66,7 +66,7 @@ list(
     ),
     cue = targets::tar_cue(mode = "always")
   ),
-  # Why: Import the prepared data once; it reruns only when the fingerprint
+  # Import the prepared data once; it reruns only when the fingerprint
   #   changes. Referencing the fingerprint creates that dependency.
   targets::tar_target(
     name = "data_prepared",
@@ -80,7 +80,7 @@ list(
       )
     }
   ),
-  # Why: Example result table, using the configured minimum group size.
+  # Example result table, using the configured minimum group size.
   targets::tar_target(
     name = "table_species_summary",
     command = summarise_example_data(

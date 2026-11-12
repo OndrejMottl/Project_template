@@ -35,7 +35,7 @@ R/
 - Each stage has a `00_run.R` that sources the setup and calls `run_target_pipeline()` for each of its pipelines. `00_run_main.R` sources the stage runners in order; add each new stage runner to its list.
 - A `pipeline.R` only declares targets. It sources the setup, sets `targets::tar_option_set(seed = config_seed)`, and returns a list of targets. Sourcing it never builds targets (the setup it sources may still refresh `R/package_dependencies.R`).
 - Each pipeline owns one store, resolved with `resolve_pipeline_store_path()` under `<data root>/Targets_data/`. Never share a store between pipelines.
-- Target names are quoted strings. Each target has a `# Why:` comment saying what it provides and why it is in the graph.
+- Target names are quoted strings. Above each target, a short plain comment says what it provides and why it is in the graph. Do not start the comment with a label such as `Why:`.
 - When a target command is more than one function call, move the logic into a function in `R/Functions/`. The upstream-import target is the one exception (see below).
 
 ## Cross-pipeline contracts
